@@ -1,0 +1,14 @@
+npm run lint-fix
+
+if [ $? -ne 0 ]; then
+	echo "ESLint found errors. Commit aborted."
+	exit 1
+fi
+
+echo "Running TypeScript type check..."
+npx tsc --noEmit
+
+if [ $? -ne 0 ]; then
+	echo "TypeScript found errors. Commit aborted."
+	exit 1
+fi

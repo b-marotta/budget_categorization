@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { ThemeProvider } from 'next-themes'
+// import { ThemeProvider } from 'next-themes'
 import { Geist } from 'next/font/google'
 
 import './globals.css'
@@ -27,15 +27,15 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className={`${geistSans.className} antialiased`}>
-                <ThemeProvider
+            <body className={`${geistSans.className} antialiased`} suppressHydrationWarning>
+                {/* <ThemeProvider
                     attribute="class"
                     defaultTheme="system"
                     enableSystem
                     disableTransitionOnChange
-                >
-                    {children}
-                </ThemeProvider>
+                > */}
+                {children}
+                {/* </ThemeProvider> */}
             </body>
         </html>
     )
