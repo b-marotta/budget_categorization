@@ -57,6 +57,7 @@ create table system_categories (
 
   type text not null,
   name text not null,
+  main_category text not null,
   color text,
   icon text,
 
