@@ -1,0 +1,69 @@
+name: Deploy Supabase + Vercel + AWS ECR
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        env:
+            SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+            SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+            VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+            VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+            VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+        steps:
+            # Checkout repo
+            - uses: actions/checkout@v4
+
+            # Check for changes in the target directories
+            - uses: dorny/paths-filter@v3
+              id: changes
+              with:
+                  base: 'main'
+                  filters: |
+                      supabase:
+                        - 'supabase/**'
+                      vercel:
+                        - '**'
+                        - '!supabase/**'
+                        - '!README.md'
+
+            # Setup Supabase CLI
+            - name: Setup Supabase CLI
+              uses: supabase/setup-cli@v1
+              if: steps.changes.outputs.supabase == 'true'
+              with:
+                  version: latest
+
+            # Link Supabase project
+            - name: Link Supabase Project
+              if: steps.changes.outputs.supabase == 'true'
+              run: supabase link --project-ref $SUPABASE_PROJECT_ID
+
+            # Apply migrations to database
+            - name: Apply Migrations
+              if: steps.changes.outputs.supabase == 'true'
+              run: supabase db push
+
+            # Install Vercel CLI
+            - name: Install Vercel CLI
+              if: steps.changes.outputs.vercel == 'true'
+              run: npm install --global vercel@latest
+
+            # Pull environment info
+            - name: Pull Vercel Environment Information
+              if: steps.changes.outputs.vercel == 'true'
+              run: vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+
+            # Build and Deploy to Vercel
+            - name: Build Project Artifacts
+              if: steps.changes.outputs.vercel == 'true'
+              run: vercel build --prod --token=$VERCEL_TOKEN
+            - name: Deploy Project Artifacts to Vercel
+              if: steps.changes.outputs.vercel == 'true'
+              run: vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
