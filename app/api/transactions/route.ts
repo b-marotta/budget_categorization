@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
             )
             .eq('user_id', user.id)
             .order('transaction_date', { ascending: false })
+            .order('id', { ascending: false })
 
         if (accountId) {
             query = query.eq('account_id', accountId)
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
             query = query.lte('transaction_date', dateTo)
         }
 
-        query = query.order('transaction_date', { ascending: false }).limit(limit)
+        query = query.limit(limit)
 
         const { data: transactions, error } = await query
 

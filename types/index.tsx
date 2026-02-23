@@ -31,6 +31,15 @@ export interface Transaction {
     }
 }
 
+export interface Category {
+    id: string
+    type: 'income' | 'expense'
+    name: string
+    color: string
+    icon: string
+    is_custom: boolean
+}
+
 export interface Stats {
     totalBalance: number
     income: number

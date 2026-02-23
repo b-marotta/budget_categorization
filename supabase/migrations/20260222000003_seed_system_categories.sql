@@ -1,6 +1,5 @@
--- System Categories Seed
--- Global categories shared by all users (23 categories total instead of 23 × users)
--- These are inserted once and available to everyone
+-- Seed System Categories
+-- Global categories shared by all users (23 categories total)
 
 -- Expenses Categories
 insert into system_categories (type, main_category, name, color, icon) values

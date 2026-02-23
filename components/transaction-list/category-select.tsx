@@ -12,50 +12,33 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-
-interface Category {
-    id: string
-    name: string
-    color: string
-    icon: string
-    is_custom: boolean // changed from is_system to is_custom
-}
+import { Category } from '@/types'
 
 interface CategorySelectProps {
     transactionId: string
     currentCategoryId?: string
+    transactionAmount: number
+    categories: Category[]
     onUpdate?: (categoryId: string) => void
 }
 
 export function CategorySelect({
     transactionId,
     currentCategoryId,
+    transactionAmount,
+    categories,
     onUpdate,
 }: CategorySelectProps) {
-    const [categories, setCategories] = useState<Category[]>([])
-    const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string>(currentCategoryId || '')
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
-        loadCategories()
-    }, [])
+        setSelectedCategoryId(currentCategoryId || '')
+    }, [currentCategoryId])
 
-    useEffect(() => {
-        if (currentCategoryId && categories.length > 0) {
-            const category = categories.find((c) => c.id === currentCategoryId)
-            setSelectedCategory(category || null)
-        }
-    }, [currentCategoryId, categories])
-
-    const loadCategories = async () => {
-        try {
-            const res = await fetch('/api/categories')
-            const data = await res.json()
-            setCategories(data.categories || [])
-        } catch (error) {
-            console.error('Failed to load categories:', error)
-        }
-    }
+    const selectedCategory = categories.find((c) => c.id === selectedCategoryId) || null
+    const transactionType = transactionAmount > 0 ? 'income' : 'expense'
+    const filteredCategories = categories.filter((category) => category.type === transactionType)
 
     const assignCategory = async (categoryId: string) => {
         setLoading(true)
@@ -67,8 +50,7 @@ export function CategorySelect({
             })
 
             if (res.ok) {
-                const category = categories.find((c) => c.id === categoryId)
-                setSelectedCategory(category || null)
+                setSelectedCategoryId(categoryId)
                 onUpdate?.(categoryId)
             }
         } catch (error) {
@@ -81,21 +63,19 @@ export function CategorySelect({
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" disabled={loading}>
-                    {selectedCategory ? (
-                        <Badge variant="outline" style={{ borderColor: selectedCategory.color }}>
-                            {selectedCategory.name}
-                        </Badge>
-                    ) : (
-                        <>
-                            <Tag className="mr-2 h-4 w-4" />
-                            Categorizza
-                        </>
-                    )}
-                </Button>
+                {selectedCategory ? (
+                    <Badge variant="outline" style={{ borderColor: selectedCategory.color }}>
+                        {selectedCategory.name}
+                    </Badge>
+                ) : (
+                    <Button variant="outline" size="sm" disabled={loading}>
+                        <Tag className="mr-2 h-4 w-4" />
+                        Categorizza
+                    </Button>
+                )}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-                {categories.length === 0 ? (
+                {filteredCategories.length === 0 ? (
                     <div className="text-muted-foreground p-2 text-sm">
                         Nessuna categoria disponibile
                     </div>
@@ -109,7 +89,7 @@ export function CategorySelect({
                                 <div className="bg-border my-1 h-px" />
                             </>
                         )}
-                        {categories.map((category) => (
+                        {filteredCategories.map((category) => (
                             <DropdownMenuItem
                                 key={category.id}
                                 onClick={() => assignCategory(category.id)}

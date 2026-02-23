@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 
 import { formatCurrency } from '@/lib/utils'
-import { Transaction } from '@/types'
+import { Category, Transaction } from '@/types'
 
 import { CategorySelect } from './category-select'
 
@@ -35,6 +35,7 @@ function getDateGroupLabel(dateKey: string) {
 
 export default function TransactionList() {
     const [transactions, setTransactions] = useState<Transaction[]>([])
+    const [categories, setCategories] = useState<Category[]>([])
     const [loading, setLoading] = useState(false)
 
     const groupedTransactions = useMemo(() => {
@@ -65,14 +66,32 @@ export default function TransactionList() {
     const loadData = async () => {
         setLoading(true)
         try {
-            // Load recent transactions
+            const [txnRes, categoriesRes] = await Promise.all([
+                fetch('/api/transactions?limit=50'),
+                fetch('/api/categories'),
+            ])
+
+            const [txnData, categoriesData] = await Promise.all([
+                txnRes.json(),
+                categoriesRes.json(),
+            ])
+
+            setTransactions(txnData.transactions || [])
+            setCategories(categoriesData.categories || [])
+        } catch (error) {
+            console.error('Failed to load transactions data:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const reloadTransactions = async () => {
+        try {
             const txnRes = await fetch('/api/transactions?limit=50')
             const txnData = await txnRes.json()
             setTransactions(txnData.transactions || [])
         } catch (error) {
-            console.error('Failed to load transactions:', error)
-        } finally {
-            setLoading(false)
+            console.error('Failed to refresh transactions:', error)
         }
     }
 
@@ -108,12 +127,7 @@ export default function TransactionList() {
                                             {txn.account.bank.institution_name} · {txn.account.name}
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <CategorySelect
-                                            transactionId={txn.id}
-                                            currentCategoryId={txn.category?.id}
-                                            onUpdate={loadData}
-                                        />
+                                    <div className="flex flex-col gap-3">
                                         <div
                                             className={`text-right font-bold ${
                                                 txn.amount > 0 ? 'text-green-600' : 'text-red-600'
@@ -122,6 +136,13 @@ export default function TransactionList() {
                                             {txn.amount > 0 ? '+' : ''}
                                             {formatCurrency(txn.amount, txn.currency)}
                                         </div>
+                                        <CategorySelect
+                                            transactionId={txn.id}
+                                            currentCategoryId={txn.category?.id}
+                                            transactionAmount={txn.amount}
+                                            categories={categories}
+                                            onUpdate={reloadTransactions}
+                                        />
                                     </div>
                                 </div>
                             ))}

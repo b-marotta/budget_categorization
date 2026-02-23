@@ -18,13 +18,13 @@ export async function GET(request: NextRequest) {
         if (error) {
             console.error('Authorization error:', error)
             return NextResponse.redirect(
-                `${request.nextUrl.origin}/dashboard?error=bank_connection_failed`,
+                `${request.nextUrl.origin}/accounts?error=bank_connection_failed`,
             )
         }
 
         if (!code || !state) {
             return NextResponse.redirect(
-                `${request.nextUrl.origin}/dashboard?error=invalid_callback`,
+                `${request.nextUrl.origin}/accounts?error=invalid_callback`,
             )
         }
 
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
         if (bankError || !bank) {
             console.error('Bank record not found:', bankError)
-            return NextResponse.redirect(`${request.nextUrl.origin}/dashboard?error=bank_not_found`)
+            return NextResponse.redirect(`${request.nextUrl.origin}/accounts?error=bank_not_found`)
         }
 
         const client = createEnableBankingClient()
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 
         if (updateError) {
             console.error('Failed to update bank:', updateError)
-            return NextResponse.redirect(`${request.nextUrl.origin}/dashboard?error=update_failed`)
+            return NextResponse.redirect(`${request.nextUrl.origin}/accounts?error=update_failed`)
         }
 
         // Automatically sync accounts and transactions after connection
@@ -84,10 +84,10 @@ export async function GET(request: NextRequest) {
 
         // Redirect to dashboard with success
         return NextResponse.redirect(
-            `${request.nextUrl.origin}/dashboard?success=bank_connected&bank_id=${bank.id}`,
+            `${request.nextUrl.origin}/accounts?success=bank_connected&bank_id=${bank.id}`,
         )
     } catch (error) {
         console.error('Callback error:', error)
-        return NextResponse.redirect(`${request.nextUrl.origin}/dashboard?error=callback_failed`)
+        return NextResponse.redirect(`${request.nextUrl.origin}/accounts?error=callback_failed`)
     }
 }
