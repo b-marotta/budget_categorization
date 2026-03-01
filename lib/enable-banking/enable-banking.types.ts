@@ -547,7 +547,14 @@ export interface HalBalances {
 }
 
 export interface HalTransactions {
-    transactions: Transaction[]
+    transactions:
+        | Transaction[]
+        | {
+              booked?: Transaction[]
+              pending?: Transaction[]
+          }
+    booked?: Transaction[]
+    pending?: Transaction[]
     continuation_key?: string | null
 }
 

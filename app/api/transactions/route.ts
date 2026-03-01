@@ -12,7 +12,9 @@ function getTransactionPendingState(raw: unknown): boolean {
         return false
     }
 
-    return rawStatus.toUpperCase().includes('PENDING')
+    const normalizedStatus = rawStatus.toUpperCase()
+
+    return normalizedStatus.includes('PENDING') || normalizedStatus === 'PDNG'
 }
 
 /**

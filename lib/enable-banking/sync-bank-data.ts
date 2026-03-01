@@ -104,13 +104,35 @@ function buildExternalId(transaction: Transaction, accountId: string): string {
 }
 
 function extractTransactions(txnData: HalTransactions): Transaction[] {
+    // eslint-disable-next-line no-console
+    console.log(txnData)
+
     const raw = txnData as HalTransactions & {
         booked?: Transaction[]
         pending?: Transaction[]
+        transactions?:
+            | Transaction[]
+            | {
+                  booked?: Transaction[]
+                  pending?: Transaction[]
+              }
     }
 
+    const transactionsField = raw.transactions
+    const flatTransactions = Array.isArray(transactionsField) ? transactionsField : []
+    const nestedBooked =
+        transactionsField && !Array.isArray(transactionsField)
+            ? (transactionsField.booked ?? [])
+            : []
+    const nestedPending =
+        transactionsField && !Array.isArray(transactionsField)
+            ? (transactionsField.pending ?? [])
+            : []
+
     const merged = [
-        ...(Array.isArray(raw.transactions) ? raw.transactions : []),
+        ...flatTransactions,
+        ...nestedBooked,
+        ...nestedPending,
         ...(Array.isArray(raw.booked) ? raw.booked : []),
         ...(Array.isArray(raw.pending) ? raw.pending : []),
     ]
