@@ -104,9 +104,6 @@ function buildExternalId(transaction: Transaction, accountId: string): string {
 }
 
 function extractTransactions(txnData: HalTransactions): Transaction[] {
-    // eslint-disable-next-line no-console
-    console.log(txnData)
-
     const raw = txnData as HalTransactions & {
         booked?: Transaction[]
         pending?: Transaction[]
@@ -222,7 +219,7 @@ export async function syncBankData(options: SyncBankDataOptions): Promise<SyncBa
         try {
             const balancesData = await client.getAccountBalances(account.uid, psu)
             // eslint-disable-next-line no-console
-            console.log('balancesData', balancesData)
+            console.log('balancesData', JSON.stringify(balancesData, null, 2))
             balance = pickBestBalanceAmount(balancesData.balances)
         } catch (balanceError) {
             console.error('Failed to fetch balance:', balanceError)
