@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { RefreshCw } from 'lucide-react'
 
+import { Badge } from '@/components/ui/badge'
 import { formatCurrency } from '@/lib/utils'
 import { Category, Transaction } from '@/types'
 
@@ -122,7 +123,12 @@ export default function TransactionList() {
                                     className="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-3"
                                 >
                                     <div className="flex-1">
-                                        <div className="font-medium">{txn.description}</div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="font-medium">{txn.description}</div>
+                                            {txn.is_pending ? (
+                                                <Badge variant="outline">In sospeso</Badge>
+                                            ) : null}
+                                        </div>
                                         <div className="text-muted-foreground text-xs">
                                             {txn.account.bank.institution_name} · {txn.account.name}
                                         </div>

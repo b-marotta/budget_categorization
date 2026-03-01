@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { createClient } from '@/lib/supabase/server'
 
+function getTransactionPendingState(raw: unknown): boolean {
+    if (!raw || typeof raw !== 'object') {
+        return false
+    }
+
+    const rawStatus = (raw as { status?: unknown }).status
+    if (typeof rawStatus !== 'string') {
+        return false
+    }
+
+    return rawStatus.toUpperCase().includes('PENDING')
+}
+
 /**
  * GET /api/transactions
  * Get user's transactions with filters
@@ -72,8 +85,10 @@ export async function GET(request: NextRequest) {
         if (transactions) {
             const enrichedTransactions = await Promise.all(
                 transactions.map(async (tx) => {
+                    const isPending = getTransactionPendingState(tx.raw)
+
                     if (!tx.category_id || !tx.category_type) {
-                        return { ...tx, category: null }
+                        return { ...tx, category: null, is_pending: isPending }
                     }
 
                     const tableName =
@@ -84,7 +99,7 @@ export async function GET(request: NextRequest) {
                         .eq('id', tx.category_id)
                         .single()
 
-                    return { ...tx, category }
+                    return { ...tx, category, is_pending: isPending }
                 }),
             )
 

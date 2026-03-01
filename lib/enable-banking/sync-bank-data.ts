@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 
 import type { EnableBankingClient, PSUContext } from './enable-banking.client'
+import type { HalTransactions, Transaction } from './enable-banking.types'
 
 interface SyncableBank {
     id: string
@@ -31,6 +32,90 @@ interface SyncBankDataResult {
     accountsSynced: number
     transactionsSynced: number
     pagination: SyncPaginationItem[]
+}
+
+const BALANCE_PRIORITY: string[] = [
+    'CLAV',
+    'ITAV',
+    'CLBD',
+    'ITBD',
+    'OPAV',
+    'OPBD',
+    'PRCD',
+    'FWAV',
+    'VALU',
+    'INFO',
+    'OTHR',
+    'XPCD',
+]
+
+function pickBestBalanceAmount(
+    balances: Array<{ balance_type: string; balance_amount: { amount: string } }>,
+): number {
+    for (const balanceType of BALANCE_PRIORITY) {
+        const match = balances.find((balance) => balance.balance_type === balanceType)
+        if (!match) {
+            continue
+        }
+
+        const parsed = parseFloat(match.balance_amount.amount)
+        if (!Number.isNaN(parsed)) {
+            return parsed
+        }
+    }
+
+    const fallback = balances[0]
+    if (!fallback) {
+        return 0
+    }
+
+    const parsedFallback = parseFloat(fallback.balance_amount.amount)
+    return Number.isNaN(parsedFallback) ? 0 : parsedFallback
+}
+
+function getTransactionDate(transaction: Transaction): string {
+    return (
+        transaction.booking_date ||
+        transaction.value_date ||
+        transaction.transaction_date ||
+        new Date().toISOString().split('T')[0]
+    )
+}
+
+function buildExternalId(transaction: Transaction, accountId: string): string {
+    const directId =
+        transaction.entry_reference || transaction.transaction_id || transaction.reference_number
+    if (directId) {
+        return directId
+    }
+
+    const syntheticParts = [
+        accountId,
+        transaction.status || 'UNKNOWN',
+        getTransactionDate(transaction),
+        transaction.transaction_amount.currency || '',
+        transaction.transaction_amount.amount || '',
+        transaction.credit_debit_indicator || '',
+        transaction.creditor?.name || transaction.debtor?.name || '',
+        (transaction.remittance_information || []).join('|'),
+    ]
+
+    return `synthetic:${syntheticParts.join(':')}`
+}
+
+function extractTransactions(txnData: HalTransactions): Transaction[] {
+    const raw = txnData as HalTransactions & {
+        booked?: Transaction[]
+        pending?: Transaction[]
+    }
+
+    const merged = [
+        ...(Array.isArray(raw.transactions) ? raw.transactions : []),
+        ...(Array.isArray(raw.booked) ? raw.booked : []),
+        ...(Array.isArray(raw.pending) ? raw.pending : []),
+    ]
+
+    return merged
 }
 
 function extractIbanFromAccountDetails(accountDetails: {
@@ -114,14 +199,7 @@ export async function syncBankData(options: SyncBankDataOptions): Promise<SyncBa
         let balance = 0
         try {
             const balancesData = await client.getAccountBalances(account.uid, psu)
-            const primaryBalance = balancesData.balances.find(
-                (currentBalance) =>
-                    currentBalance.balance_type === 'CLBD' ||
-                    currentBalance.balance_type === 'CLAV',
-            )
-            if (primaryBalance) {
-                balance = parseFloat(primaryBalance.balance_amount.amount)
-            }
+            balance = pickBestBalanceAmount(balancesData.balances)
         } catch (balanceError) {
             console.error('Failed to fetch balance:', balanceError)
         }
@@ -179,10 +257,12 @@ export async function syncBankData(options: SyncBankDataOptions): Promise<SyncBa
                 nextContinuationKey,
             )
 
-            const transactionRecords = txnData.transactions.map((transaction) => ({
+            const transactions = extractTransactions(txnData)
+
+            const transactionRecords = transactions.map((transaction) => ({
                 user_id: userId,
                 account_id: dbAccount.id,
-                external_id: transaction.entry_reference || transaction.transaction_id || '',
+                external_id: buildExternalId(transaction, account.uid),
                 description:
                     transaction.remittance_information?.join(' ') ||
                     transaction.creditor?.name ||
@@ -192,7 +272,7 @@ export async function syncBankData(options: SyncBankDataOptions): Promise<SyncBa
                     parseFloat(transaction.transaction_amount.amount) *
                     (transaction.credit_debit_indicator === 'DBIT' ? -1 : 1),
                 currency: transaction.transaction_amount.currency,
-                transaction_date: transaction.booking_date || transaction.value_date,
+                transaction_date: getTransactionDate(transaction),
                 raw: transaction,
             }))
 

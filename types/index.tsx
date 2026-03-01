@@ -17,6 +17,7 @@ export interface Transaction {
     amount: number
     currency: string
     transaction_date: string
+    is_pending?: boolean
     account: {
         name: string
         bank: {
