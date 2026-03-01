@@ -34,20 +34,7 @@ interface SyncBankDataResult {
     pagination: SyncPaginationItem[]
 }
 
-const BALANCE_PRIORITY: string[] = [
-    'OTHR',
-    'CLAV',
-    'ITAV',
-    'CLBD',
-    'ITBD',
-    'OPAV',
-    'OPBD',
-    'PRCD',
-    'FWAV',
-    'VALU',
-    'INFO',
-    'XPCD',
-]
+const BALANCE_PRIORITY: string[] = ['OTHR', 'CLBD', 'CLAV']
 
 function pickBestBalanceAmount(
     balances: Array<{ balance_type: string; balance_amount: { amount: string } }>,
@@ -248,18 +235,9 @@ export async function syncBankData(options: SyncBankDataOptions): Promise<SyncBa
 
         accountsSynced++
 
-        const defaultDateFrom = new Date()
-        defaultDateFrom.setDate(defaultDateFrom.getDate() - 90)
-        const defaultDateTo = new Date()
-
         const selectedDateFrom =
-            typeof dateFrom === 'string' && dateFrom.length > 0
-                ? dateFrom
-                : defaultDateFrom.toISOString().split('T')[0]
-        const selectedDateTo =
-            typeof dateTo === 'string' && dateTo.length > 0
-                ? dateTo
-                : defaultDateTo.toISOString().split('T')[0]
+            typeof dateFrom === 'string' && dateFrom.length > 0 ? dateFrom : undefined
+        const selectedDateTo = typeof dateTo === 'string' && dateTo.length > 0 ? dateTo : undefined
 
         let nextContinuationKey =
             accountId === account.uid && typeof continuationKey === 'string'
@@ -356,10 +334,6 @@ export async function syncBankData(options: SyncBankDataOptions): Promise<SyncBa
                     account_id: account.uid,
                     continuation_key: txnData.continuation_key!,
                 })
-                break
-            }
-
-            if (newTransactionRecords.length === 0) {
                 break
             }
 
