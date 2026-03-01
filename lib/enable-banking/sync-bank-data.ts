@@ -221,6 +221,7 @@ export async function syncBankData(options: SyncBankDataOptions): Promise<SyncBa
         let balance = 0
         try {
             const balancesData = await client.getAccountBalances(account.uid, psu)
+            console.log('balancesData', balancesData)
             balance = pickBestBalanceAmount(balancesData.balances)
         } catch (balanceError) {
             console.error('Failed to fetch balance:', balanceError)
