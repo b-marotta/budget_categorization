@@ -62,9 +62,9 @@ function pickBestBalanceAmount(
 
 function getTransactionDate(transaction: Transaction): string {
     return (
-        transaction.booking_date ||
-        transaction.value_date ||
         transaction.transaction_date ||
+        transaction.value_date ||
+        transaction.booking_date ||
         new Date().toISOString().split('T')[0]
     )
 }
