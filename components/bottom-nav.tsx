@@ -204,7 +204,7 @@ export default function BottomNav() {
                         aria-current={isActive ? 'page' : undefined}
                         className={cn(
                             'focus-visible:ring-primary/40 relative z-10 flex flex-1 flex-col items-center gap-1 rounded-full p-1 outline-none focus-visible:ring-2 focus-visible:ring-offset-0',
-                            isActive ? 'text-primary' : 'text-muted-foreground',
+                            isActive ? 'text-primary' : 'text-black',
                         )}
                     >
                         <Icon size={20} />
