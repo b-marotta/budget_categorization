@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { House, Landmark, ReceiptText, User } from 'lucide-react'
-import { animate, motion, useMotionValue } from 'motion/react'
+import { animate, motion, useDragControls, useMotionValue } from 'motion/react'
 import { usePathname, useRouter } from 'next/navigation'
 
 import { cn } from '@/lib/utils'
@@ -29,24 +29,30 @@ export default function BottomNav() {
     const widthRef = useRef(0)
     const resizeFrameRef = useRef<number | null>(null)
     const isDraggingRef = useRef(false)
+    const suppressNextItemClickRef = useRef(false)
     const xAnimationRef = useRef<ReturnType<typeof animate> | null>(null)
     const releaseFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const dragControls = useDragControls()
     const x = useMotionValue(0)
 
     const [containerWidth, setContainerWidth] = useState(0)
     const [isReleaseFeedback, setIsReleaseFeedback] = useState(false)
+    const [hasMounted, setHasMounted] = useState(false)
+    const [isDragActive, setIsDragActive] = useState(false)
+
+    const effectivePathname = hasMounted ? pathname : '/'
 
     const activeIndex = useMemo(
         () =>
             Math.max(
                 navItems.findIndex(
                     (item) =>
-                        pathname === item.href ||
-                        (item.href !== '/' && pathname.startsWith(`${item.href}/`)),
+                        effectivePathname === item.href ||
+                        (item.href !== '/' && effectivePathname.startsWith(`${item.href}/`)),
                 ),
                 0,
             ),
-        [pathname],
+        [effectivePathname],
     )
 
     const innerWidth = Math.max(containerWidth - NAV_HORIZONTAL_PADDING * 2, 0)
@@ -81,6 +87,11 @@ export default function BottomNav() {
         animateToX(snappedX)
     }
 
+    const getXFromClientX = (clientX: number, navRect: DOMRect) => {
+        const relativeX = clientX - navRect.left - NAV_HORIZONTAL_PADDING
+        return clampX(relativeX - segmentWidth / 2)
+    }
+
     const triggerReleaseFeedback = (enableHaptic = true) => {
         if (releaseFeedbackTimeoutRef.current) {
             clearTimeout(releaseFeedbackTimeoutRef.current)
@@ -95,6 +106,10 @@ export default function BottomNav() {
             navigator.vibrate(HAPTIC_DURATION_MS)
         }
     }
+
+    useEffect(() => {
+        setHasMounted(true)
+    }, [])
 
     useEffect(() => {
         const node = navRef.current
@@ -135,7 +150,7 @@ export default function BottomNav() {
             xAnimationRef.current?.stop()
 
             if (!isPositionInitializedRef.current) {
-                x.set(activeX)
+                x.jump(activeX)
                 isPositionInitializedRef.current = true
                 return
             }
@@ -167,14 +182,13 @@ export default function BottomNav() {
                     return
                 }
 
-                const navRect = event.currentTarget.getBoundingClientRect()
-                const relativeX = event.clientX - navRect.left - NAV_HORIZONTAL_PADDING
-                const clampedX = clampX(relativeX - segmentWidth / 2)
-                const nearestIndex = getNearestIndexFromPosition(clampedX)
+                xAnimationRef.current?.stop()
+                suppressNextItemClickRef.current = true
 
-                triggerReleaseFeedback(false)
-                snapToIndex(nearestIndex)
-                navigateToIndex(nearestIndex)
+                const navRect = event.currentTarget.getBoundingClientRect()
+                const nextX = getXFromClientX(event.clientX, navRect)
+                x.set(nextX)
+                dragControls.start(event, { snapToCursor: false })
             }}
         >
             {containerWidth > 0 ? (
@@ -183,8 +197,11 @@ export default function BottomNav() {
                     type="button"
                     aria-label={`Vai a ${navItems[activeIndex]?.label ?? 'sezione attiva'}`}
                     className={cn(
-                        'border-primary/30 bg-primary/15 text-primary focus-visible:ring-primary/40 absolute z-20 flex h-12 touch-none items-center justify-center rounded-full border shadow-sm will-change-transform outline-none focus-visible:ring-2 focus-visible:ring-offset-0',
+                        'bg-primary/15 text-primary focus-visible:ring-primary/40 absolute z-20 flex h-12 touch-none items-center justify-center rounded-full border will-change-transform outline-none focus-visible:ring-2 focus-visible:ring-offset-0',
                         'cursor-grab',
+                        isDragActive
+                            ? 'border-primary opacity-35'
+                            : 'border-primary/30 opacity-100',
                         isReleaseFeedback && 'ring-primary/35 ring-2',
                     )}
                     style={{
@@ -192,8 +209,13 @@ export default function BottomNav() {
                         width: segmentWidth,
                         x,
                     }}
-                    whileDrag={{ scale: 1.1, cursor: 'grabbing' }}
+                    whileDrag={{
+                        scale: 1.1,
+                        cursor: 'grabbing',
+                    }}
                     drag="x"
+                    dragControls={dragControls}
+                    dragListener={false}
                     dragConstraints={{ left: 0, right: maxDragX }}
                     dragElastic={0}
                     dragMomentum={false}
@@ -206,14 +228,21 @@ export default function BottomNav() {
                         scale: X_SPRING,
                         y: X_SPRING,
                     }}
+                    onPointerDown={(event) => {
+                        xAnimationRef.current?.stop()
+                        dragControls.start(event, { snapToCursor: false })
+                    }}
                     onDragStart={() => {
                         isDraggingRef.current = true
+                        setIsDragActive(true)
                     }}
                     onDragEnd={() => {
                         const finalX = clampX(x.get())
                         const nearestIndex = getNearestIndexFromPosition(finalX)
 
                         isDraggingRef.current = false
+                        setIsDragActive(false)
+                        suppressNextItemClickRef.current = true
                         triggerReleaseFeedback()
 
                         snapToIndex(nearestIndex)
@@ -222,12 +251,11 @@ export default function BottomNav() {
                 />
             ) : null}
 
-            {navItems.map((item) => {
+            {navItems.map((item, itemIndex) => {
                 const isActive =
-                    pathname === item.href ||
-                    (item.href !== '/' && pathname.startsWith(`${item.href}/`))
+                    effectivePathname === item.href ||
+                    (item.href !== '/' && effectivePathname.startsWith(`${item.href}/`))
                 const Icon = item.icon
-                const itemIndex = navItems.findIndex((navItem) => navItem.href === item.href)
 
                 return (
                     <button
@@ -235,6 +263,11 @@ export default function BottomNav() {
                         type="button"
                         aria-current={isActive ? 'page' : undefined}
                         onClick={() => {
+                            if (suppressNextItemClickRef.current) {
+                                suppressNextItemClickRef.current = false
+                                return
+                            }
+
                             if (itemIndex < 0) return
 
                             snapToIndex(itemIndex)
