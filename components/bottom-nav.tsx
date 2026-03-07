@@ -17,7 +17,7 @@ export default function BottomNav() {
     const pathname = usePathname()
 
     return (
-        <footer className="mx-auto flex w-full items-center justify-between border-t py-3 text-center text-xs">
+        <footer className="mx-auto flex w-full items-center justify-between border-t pt-3 pb-6 text-center text-xs">
             {navItems.map((item) => {
                 const isActive =
                     pathname === item.href ||
