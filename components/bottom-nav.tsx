@@ -97,6 +97,11 @@ export default function BottomNav() {
         return clampX(relativeX - segmentWidth / 2)
     }
 
+    const getNearestIndexFromClientX = (clientX: number, navRect: DOMRect) => {
+        const nextX = getXFromClientX(clientX, navRect)
+        return getNearestIndexFromPosition(nextX)
+    }
+
     const triggerReleaseFeedback = (enableHaptic = true) => {
         if (releaseFeedbackTimeoutRef.current) {
             clearTimeout(releaseFeedbackTimeoutRef.current)
@@ -195,8 +200,8 @@ export default function BottomNav() {
                 }
 
                 const navRect = event.currentTarget.getBoundingClientRect()
-                const nextX = getXFromClientX(event.clientX, navRect)
-                x.set(nextX)
+                const nearestIndex = getNearestIndexFromClientX(event.clientX, navRect)
+                x.set(getSnapXForIndex(nearestIndex))
                 dragControls.start(event, { snapToCursor: false })
             }}
             onPointerUp={(event) => {
@@ -211,8 +216,7 @@ export default function BottomNav() {
                 }
 
                 const navRect = event.currentTarget.getBoundingClientRect()
-                const nextX = getXFromClientX(event.clientX, navRect)
-                const nearestIndex = getNearestIndexFromPosition(nextX)
+                const nearestIndex = getNearestIndexFromClientX(event.clientX, navRect)
 
                 triggerReleaseFeedback(false)
                 snapToIndex(nearestIndex)
