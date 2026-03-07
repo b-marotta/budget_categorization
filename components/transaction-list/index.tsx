@@ -1,43 +1,13 @@
 'use client'
 
-import { useMemo } from 'react'
-
 import { RefreshCw } from 'lucide-react'
 
-import { Badge } from '@/components/ui/badge'
 import { refetchFinanceData } from '@/hooks/data-refresh-events'
 import { useCategoriesData } from '@/hooks/use-categories-data'
 import { useTransactionsData } from '@/hooks/use-transactions-data'
 import { formatCurrency } from '@/lib/utils'
-import { Transaction } from '@/types'
 
 import { CategorySelect } from './category-select'
-
-const TRANSACTION_LIST_VISIBLE_ROWS = 50
-
-function getDateGroupLabel(dateKey: string) {
-    const transactionDate = new Date(`${dateKey}T00:00:00`)
-    const today = new Date()
-    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    const startOfYesterday = new Date(startOfToday)
-    startOfYesterday.setDate(startOfYesterday.getDate() - 1)
-
-    if (transactionDate.getTime() === startOfToday.getTime()) {
-        return 'Oggi'
-    }
-
-    if (transactionDate.getTime() === startOfYesterday.getTime()) {
-        return 'Ieri'
-    }
-
-    const isCurrentYear = transactionDate.getFullYear() === today.getFullYear()
-
-    return new Intl.DateTimeFormat('en-GB', {
-        day: 'numeric',
-        month: 'long',
-        ...(isCurrentYear ? {} : { year: 'numeric' }),
-    }).format(transactionDate)
-}
 
 export default function TransactionList() {
     const {
@@ -47,28 +17,6 @@ export default function TransactionList() {
     } = useTransactionsData()
     const { categories, loading: categoriesLoading } = useCategoriesData()
     const loading = transactionsLoading || categoriesLoading
-
-    const groupedTransactions = useMemo(() => {
-        const groups = new Map<string, Transaction[]>()
-        const visibleTransactions = transactions.slice(0, TRANSACTION_LIST_VISIBLE_ROWS)
-
-        for (const txn of visibleTransactions) {
-            const dateKey = txn.transaction_date.split('T')[0]
-            const group = groups.get(dateKey)
-
-            if (group) {
-                group.push(txn)
-            } else {
-                groups.set(dateKey, [txn])
-            }
-        }
-
-        return Array.from(groups.entries()).map(([dateKey, items]) => ({
-            dateKey,
-            label: getDateGroupLabel(dateKey),
-            items,
-        }))
-    }, [transactions])
 
     const reloadTransactions = async () => {
         try {
@@ -87,6 +35,29 @@ export default function TransactionList() {
         )
     }
 
+    const getTransactionDateLabel = (dateStr: string) => {
+        const transactionDate = new Date(dateStr)
+        const today = new Date()
+        const yesterday = new Date(today)
+        yesterday.setDate(today.getDate() - 1)
+        const startOfToday = new Date(today.setHours(0, 0, 0, 0))
+        const startOfYesterday = new Date(yesterday.setHours(0, 0, 0, 0))
+
+        if (transactionDate.getTime() === startOfToday.getTime()) {
+            return 'Oggi'
+        }
+
+        if (transactionDate.getTime() === startOfYesterday.getTime()) {
+            return 'Ieri'
+        }
+
+        return transactionDate.toLocaleDateString('it-IT', {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit',
+        })
+    }
+
     return (
         <div className="flex h-full flex-col">
             {transactions.length === 0 ? (
@@ -95,47 +66,54 @@ export default function TransactionList() {
                 </div>
             ) : (
                 <div className="h-full space-y-4 pr-1">
-                    {groupedTransactions.map((group) => (
-                        <section key={group.dateKey} className="space-y-2">
-                            <h3 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-                                {group.label}
-                            </h3>
-                            {group.items.map((txn) => (
-                                <div
-                                    key={txn.id}
-                                    className="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-3"
-                                >
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2">
-                                            <div className="font-medium">{txn.description}</div>
-                                            {txn.is_pending ? (
-                                                <Badge variant="outline">In sospeso</Badge>
-                                            ) : null}
-                                        </div>
-                                        <div className="text-muted-foreground text-xs">
-                                            {txn.account.bank.institution_name} · {txn.account.name}
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col gap-3">
-                                        <div
-                                            className={`text-right font-bold ${
-                                                txn.amount > 0 ? 'text-green-600' : 'text-red-600'
-                                            }`}
-                                        >
-                                            {txn.amount > 0 ? '+' : ''}
-                                            {formatCurrency(txn.amount, txn.currency)}
-                                        </div>
-                                        <CategorySelect
-                                            transactionId={txn.id}
-                                            currentCategoryId={txn.category?.id}
-                                            transactionAmount={txn.amount}
-                                            categories={categories}
-                                            onUpdate={reloadTransactions}
-                                        />
-                                    </div>
+                    {transactions.map((txn) => (
+                        <div
+                            key={txn.id}
+                            className="hover:bg-muted/50 mb-4 flex items-stretch justify-between border-b pb-4"
+                        >
+                            <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 pr-3">
+                                <p className="text-muted-foreground text-xs">
+                                    {getTransactionDateLabel(txn.transaction_date)}
+                                    {' · '}
+                                    {new Date(txn.transaction_date).toLocaleTimeString('it-IT', {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                    })}
+                                    {txn.is_pending ? (
+                                        <>
+                                            {' · '}
+                                            <span className="text-blue-600">In sospeso</span>
+                                        </>
+                                    ) : null}
+                                </p>
+
+                                <div className="flex items-center gap-2">
+                                    <p className="line-clamp-3 [display:-webkit-box] overflow-hidden text-sm font-medium wrap-break-word">
+                                        {txn.description}
+                                    </p>
                                 </div>
-                            ))}
-                        </section>
+                                <div className="text-muted-foreground truncate text-xs">
+                                    {txn.account.bank.institution_name} · {txn.account.name}
+                                </div>
+                            </div>
+                            <div className="flex shrink-0 flex-col justify-between gap-3">
+                                <div
+                                    className={`text-right font-bold ${
+                                        txn.amount > 0 ? 'text-green-600' : 'text-red-600'
+                                    }`}
+                                >
+                                    {txn.amount > 0 ? '+' : ''}
+                                    {formatCurrency(txn.amount, txn.currency)}
+                                </div>
+                                <CategorySelect
+                                    transactionId={txn.id}
+                                    currentCategoryId={txn.category?.id}
+                                    transactionAmount={txn.amount}
+                                    categories={categories}
+                                    onUpdate={reloadTransactions}
+                                />
+                            </div>
+                        </div>
                     ))}
                 </div>
             )}

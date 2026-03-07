@@ -35,6 +35,7 @@ export interface Transaction {
 export interface Category {
     id: string
     type: 'income' | 'expense'
+    main_category?: string
     name: string
     color: string
     icon: string

@@ -41,6 +41,10 @@ self.addEventListener('fetch', (event) => {
         return
     }
 
+    if (url.pathname.startsWith('/_next/')) {
+        return
+    }
+
     if (url.pathname.startsWith('/api/')) {
         event.respondWith(fetch(request))
         return
@@ -71,7 +75,6 @@ self.addEventListener('fetch', (event) => {
     }
 
     const isStaticAsset =
-        url.pathname.startsWith('/_next/static/') ||
         url.pathname.startsWith('/icons/') ||
         /\.(?:js|css|woff2?|png|jpg|jpeg|svg|webp|ico)$/.test(url.pathname)
 

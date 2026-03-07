@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react'
 
-import { Tag } from 'lucide-react'
-
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { refetchFinanceData } from '@/hooks/data-refresh-events'
@@ -40,6 +40,17 @@ export function CategorySelect({
     const selectedCategory = categories.find((c) => c.id === selectedCategoryId) || null
     const transactionType = transactionAmount > 0 ? 'income' : 'expense'
     const filteredCategories = categories.filter((category) => category.type === transactionType)
+    const groupedCategories = filteredCategories.reduce<Record<string, Category[]>>(
+        (acc, category) => {
+            const groupName = category.main_category || 'Personalizzate'
+            acc[groupName] = [...(acc[groupName] || []), category]
+            return acc
+        },
+        {},
+    )
+    const categoryGroups = Object.entries(groupedCategories).sort(([groupA], [groupB]) =>
+        groupA.localeCompare(groupB),
+    )
 
     const assignCategory = async (categoryId: string) => {
         setLoading(true)
@@ -70,8 +81,7 @@ export function CategorySelect({
                         {selectedCategory.name}
                     </Badge>
                 ) : (
-                    <Button variant="outline" size="sm" disabled={loading}>
-                        <Tag className="mr-2 h-4 w-4" />
+                    <Button variant="outline" size="xs" disabled={loading}>
                         Categorizza
                     </Button>
                 )}
@@ -88,22 +98,30 @@ export function CategorySelect({
                                 <DropdownMenuItem onClick={() => assignCategory('')}>
                                     <span className="text-muted-foreground">Rimuovi categoria</span>
                                 </DropdownMenuItem>
-                                <div className="bg-border my-1 h-px" />
+                                <DropdownMenuSeparator />
                             </>
                         )}
-                        {filteredCategories.map((category) => (
-                            <DropdownMenuItem
-                                key={category.id}
-                                onClick={() => assignCategory(category.id)}
-                            >
-                                <div className="flex items-center gap-2">
-                                    <div
-                                        className="h-3 w-3 rounded-full"
-                                        style={{ backgroundColor: category.color }}
-                                    />
-                                    <span>{category.name}</span>
-                                </div>
-                            </DropdownMenuItem>
+                        {categoryGroups.map(([groupName, categoriesInGroup], groupIndex) => (
+                            <div key={groupName}>
+                                {groupIndex > 0 && <DropdownMenuSeparator />}
+                                <DropdownMenuLabel className="text-muted-foreground text-xs uppercase">
+                                    {groupName}
+                                </DropdownMenuLabel>
+                                {categoriesInGroup.map((category) => (
+                                    <DropdownMenuItem
+                                        key={category.id}
+                                        onClick={() => assignCategory(category.id)}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <div
+                                                className="h-3 w-3 rounded-full"
+                                                style={{ backgroundColor: category.color }}
+                                            />
+                                            <span>{category.name}</span>
+                                        </div>
+                                    </DropdownMenuItem>
+                                ))}
+                            </div>
                         ))}
                     </>
                 )}
