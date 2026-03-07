@@ -1,7 +1,6 @@
 import { Suspense } from 'react'
 
 import BottomNav from '@/components/bottom-nav'
-import PullToRefresh from '@/components/pull-to-refresh'
 import { UserProvider } from '@/context/user-context'
 import { createClient } from '@/lib/supabase/server'
 
@@ -12,9 +11,7 @@ async function ProtectedContent({ children }: { children: React.ReactNode }) {
     return (
         <UserProvider user={data?.user ?? null}>
             <main className="flex h-dvh flex-col">
-                <PullToRefresh friction={0.45} triggerDistance={84} maxPullDistance={136}>
-                    <div className="min-h-full p-4 pb-24">{children}</div>
-                </PullToRefresh>
+                <div className="min-h-full p-4 pb-24">{children}</div>
                 <BottomNav />
             </main>
         </UserProvider>
