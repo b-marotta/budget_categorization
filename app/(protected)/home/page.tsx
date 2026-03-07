@@ -198,7 +198,7 @@ export default function Home() {
 
             <div className="grid gap-3 sm:grid-cols-3">
                 <Card>
-                    <CardHeader className="pb-2">
+                    <CardHeader>
                         <CardDescription>Saldo totale</CardDescription>
                         <CardTitle className="text-2xl">
                             {formatCurrency(totalBalance, defaultCurrency)}
@@ -206,7 +206,7 @@ export default function Home() {
                     </CardHeader>
                 </Card>
                 <Card>
-                    <CardHeader className="pb-2">
+                    <CardHeader>
                         <CardDescription>Entrate mese</CardDescription>
                         <CardTitle className="text-2xl text-green-600">
                             {formatCurrency(monthlyIncome, defaultCurrency)}
@@ -217,7 +217,7 @@ export default function Home() {
                     </CardHeader>
                 </Card>
                 <Card>
-                    <CardHeader className="pb-2">
+                    <CardHeader>
                         <CardDescription>Uscite mese</CardDescription>
                         <CardTitle className="text-2xl text-red-600">
                             {formatCurrency(monthlyExpenses, defaultCurrency)}
