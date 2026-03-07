@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next'
 // import { ThemeProvider } from 'next-themes'
 import { Geist } from 'next/font/google'
 
-import InstallPrompt from '@/components/pwa/install-prompt'
 import ServiceWorkerRegister from '@/components/pwa/service-worker-register'
 
 import './globals.css'
@@ -64,7 +63,6 @@ export default function RootLayout({
         <html lang="en" suppressHydrationWarning>
             <body className={`${geistSans.className} antialiased`} suppressHydrationWarning>
                 <ServiceWorkerRegister />
-                <InstallPrompt />
                 {/* <ThemeProvider
                     attribute="class"
                     defaultTheme="system"
