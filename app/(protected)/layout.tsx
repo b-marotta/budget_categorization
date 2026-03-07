@@ -11,7 +11,7 @@ async function ProtectedContent({ children }: { children: React.ReactNode }) {
 
     return (
         <UserProvider user={data?.user ?? null}>
-            <main className="flex h-dvh flex-col overflow-hidden overscroll-none">
+            <main className="flex h-dvh flex-col">
                 <PullToRefresh friction={0.45} triggerDistance={84} maxPullDistance={136}>
                     <div className="min-h-full p-4 pb-24">{children}</div>
                 </PullToRefresh>
