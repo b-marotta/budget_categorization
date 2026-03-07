@@ -10,8 +10,10 @@ async function ProtectedContent({ children }: { children: React.ReactNode }) {
 
     return (
         <UserProvider user={data?.user ?? null}>
-            <main className="flex h-dvh flex-col">
-                <div className="min-h-full p-4 pb-24">{children}</div>
+            <main className="relative flex h-dvh flex-col">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-auto p-4 pb-25">
+                    {children}
+                </div>
                 <BottomNav />
             </main>
         </UserProvider>

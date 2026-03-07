@@ -156,14 +156,14 @@ export default function Home() {
 
     if (loading) {
         return (
-            <main className="flex h-full w-full items-center justify-center">
+            <div className="flex h-full w-full items-center justify-center">
                 <RefreshCw className="text-muted-foreground h-8 w-8 animate-spin" />
-            </main>
+            </div>
         )
     }
 
     return (
-        <main className="flex h-full w-full flex-col gap-4">
+        <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold">Panoramica</h1>
                 <Badge variant="secondary">{`${accounts.length} Cont${accounts.length === 1 ? 'o' : 'i'}`}</Badge>
@@ -330,6 +330,6 @@ export default function Home() {
                     )}
                 </CardContent>
             </Card>
-        </main>
+        </div>
     )
 }

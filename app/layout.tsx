@@ -61,10 +61,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning className="overflow-hidden">
-            <body
-                className={`${geistSans.className} overflow-auto antialiased`}
-                suppressHydrationWarning
-            >
+            <body className={`${geistSans.className} antialiased`} suppressHydrationWarning>
                 <ServiceWorkerRegister />
                 {/* <ThemeProvider
                     attribute="class"

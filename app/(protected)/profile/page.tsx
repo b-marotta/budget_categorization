@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 
 export default function Account() {
     return (
-        <main className="flex h-full w-full flex-col gap-4">
+        <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold">Account</h1>
             </div>
@@ -24,6 +24,6 @@ export default function Account() {
                     </Button>
                 </div>
             </div>
-        </main>
+        </div>
     )
 }
