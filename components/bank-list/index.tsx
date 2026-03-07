@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react'
 import { RefreshCw, X } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
+import { refetchFinanceData } from '@/hooks/data-refresh-events'
+import { useAccountsData } from '@/hooks/use-accounts-data'
 import { formatCurrency } from '@/lib/utils'
-import { Account } from '@/types'
 
 import LinkDrawer from '../link-drawer'
 import { Button } from '../ui/button'
@@ -15,8 +16,7 @@ export default function BankList() {
     const router = useRouter()
     const pathname = usePathname()
 
-    const [accounts, setAccounts] = useState<Account[]>([])
-    const [loading, setLoading] = useState(true)
+    const { accounts, loading, refetch: refetchAccounts } = useAccountsData()
     const [syncing, setSyncing] = useState(false)
 
     const successParam = searchParams.get('success')
@@ -24,22 +24,12 @@ export default function BankList() {
     const isBankConnected = successParam === 'bank_connected'
 
     useEffect(() => {
-        loadData()
-    }, [])
-
-    const loadData = async () => {
-        setLoading(true)
-        try {
-            // Load accounts
-            const accountsRes = await fetch('/api/accounts')
-            const accountsData = await accountsRes.json()
-            setAccounts(accountsData.accounts || [])
-        } catch (error) {
-            console.error('Failed to load data:', error)
-        } finally {
-            setLoading(false)
+        if (isBankConnected) {
+            refetchAccounts().catch((error) => {
+                console.error('Failed to refresh accounts after bank link:', error)
+            })
         }
-    }
+    }, [isBankConnected, refetchAccounts])
 
     const syncBank = async (bankId?: string) => {
         setSyncing(true)
@@ -51,7 +41,11 @@ export default function BankList() {
             })
 
             if (res.ok) {
-                await loadData()
+                refetchFinanceData({
+                    accounts: true,
+                    transactions: true,
+                })
+                await refetchAccounts()
             } else {
                 const error = await res.json()
                 console.error('Sync failed:', error)

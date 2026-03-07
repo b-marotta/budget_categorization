@@ -12,6 +12,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { refetchFinanceData } from '@/hooks/data-refresh-events'
 import { Category } from '@/types'
 
 interface CategorySelectProps {
@@ -19,7 +20,7 @@ interface CategorySelectProps {
     currentCategoryId?: string
     transactionAmount: number
     categories: Category[]
-    onUpdate?: (categoryId: string) => void
+    onUpdate?: () => void
 }
 
 export function CategorySelect({
@@ -51,7 +52,8 @@ export function CategorySelect({
 
             if (res.ok) {
                 setSelectedCategoryId(categoryId)
-                onUpdate?.(categoryId)
+                refetchFinanceData({ transactions: true })
+                onUpdate?.()
             }
         } catch (error) {
             console.error('Failed to assign category:', error)

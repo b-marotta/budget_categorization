@@ -38,7 +38,8 @@ export async function GET(request: NextRequest) {
         const categoryId = searchParams.get('category_id')
         const dateFrom = searchParams.get('date_from')
         const dateTo = searchParams.get('date_to')
-        const limit = parseInt(searchParams.get('limit') || '50')
+        const limitParam = searchParams.get('limit')
+        const limit = limitParam ? parseInt(limitParam, 10) : null
 
         let query = supabase
             .from('transactions')
@@ -75,7 +76,9 @@ export async function GET(request: NextRequest) {
             query = query.lte('transaction_date', dateTo)
         }
 
-        query = query.limit(limit)
+        if (typeof limit === 'number' && Number.isFinite(limit) && limit > 0) {
+            query = query.limit(limit)
+        }
 
         const { data: transactions, error } = await query
 

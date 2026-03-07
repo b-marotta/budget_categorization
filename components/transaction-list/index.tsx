@@ -1,14 +1,19 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 import { RefreshCw } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
+import { refetchFinanceData } from '@/hooks/data-refresh-events'
+import { useCategoriesData } from '@/hooks/use-categories-data'
+import { useTransactionsData } from '@/hooks/use-transactions-data'
 import { formatCurrency } from '@/lib/utils'
-import { Category, Transaction } from '@/types'
+import { Transaction } from '@/types'
 
 import { CategorySelect } from './category-select'
+
+const TRANSACTION_LIST_VISIBLE_ROWS = 50
 
 function getDateGroupLabel(dateKey: string) {
     const transactionDate = new Date(`${dateKey}T00:00:00`)
@@ -35,14 +40,19 @@ function getDateGroupLabel(dateKey: string) {
 }
 
 export default function TransactionList() {
-    const [transactions, setTransactions] = useState<Transaction[]>([])
-    const [categories, setCategories] = useState<Category[]>([])
-    const [loading, setLoading] = useState(false)
+    const {
+        transactions,
+        loading: transactionsLoading,
+        refetch: refetchTransactions,
+    } = useTransactionsData()
+    const { categories, loading: categoriesLoading } = useCategoriesData()
+    const loading = transactionsLoading || categoriesLoading
 
     const groupedTransactions = useMemo(() => {
         const groups = new Map<string, Transaction[]>()
+        const visibleTransactions = transactions.slice(0, TRANSACTION_LIST_VISIBLE_ROWS)
 
-        for (const txn of transactions) {
+        for (const txn of visibleTransactions) {
             const dateKey = txn.transaction_date.split('T')[0]
             const group = groups.get(dateKey)
 
@@ -60,37 +70,10 @@ export default function TransactionList() {
         }))
     }, [transactions])
 
-    useEffect(() => {
-        loadData()
-    }, [])
-
-    const loadData = async () => {
-        setLoading(true)
-        try {
-            const [txnRes, categoriesRes] = await Promise.all([
-                fetch('/api/transactions?limit=50'),
-                fetch('/api/categories'),
-            ])
-
-            const [txnData, categoriesData] = await Promise.all([
-                txnRes.json(),
-                categoriesRes.json(),
-            ])
-
-            setTransactions(txnData.transactions || [])
-            setCategories(categoriesData.categories || [])
-        } catch (error) {
-            console.error('Failed to load transactions data:', error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
     const reloadTransactions = async () => {
         try {
-            const txnRes = await fetch('/api/transactions?limit=50')
-            const txnData = await txnRes.json()
-            setTransactions(txnData.transactions || [])
+            await refetchTransactions()
+            refetchFinanceData({ transactions: true })
         } catch (error) {
             console.error('Failed to refresh transactions:', error)
         }

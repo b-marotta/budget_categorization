@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils'
 const NAV_HORIZONTAL_PADDING = 4
 const RELEASE_FEEDBACK_DURATION_MS = 150
 const HAPTIC_DURATION_MS = 12
+const FOOTER_TAP_THRESHOLD_PX = 6
 const X_SPRING = { type: 'spring' as const, stiffness: 520, damping: 38, mass: 0.55 }
 
 const navItems = [
@@ -30,6 +31,10 @@ export default function BottomNav() {
     const resizeFrameRef = useRef<number | null>(null)
     const isDraggingRef = useRef(false)
     const suppressNextItemClickRef = useRef(false)
+    const footerPointerRef = useRef<{
+        pointerId: number
+        startClientX: number
+    } | null>(null)
     const xAnimationRef = useRef<ReturnType<typeof animate> | null>(null)
     const releaseFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const dragControls = useDragControls()
@@ -184,11 +189,40 @@ export default function BottomNav() {
 
                 xAnimationRef.current?.stop()
                 suppressNextItemClickRef.current = true
+                footerPointerRef.current = {
+                    pointerId: event.pointerId,
+                    startClientX: event.clientX,
+                }
 
                 const navRect = event.currentTarget.getBoundingClientRect()
                 const nextX = getXFromClientX(event.clientX, navRect)
                 x.set(nextX)
                 dragControls.start(event, { snapToCursor: false })
+            }}
+            onPointerUp={(event) => {
+                const footerPointer = footerPointerRef.current
+                if (!footerPointer || footerPointer.pointerId !== event.pointerId) return
+
+                footerPointerRef.current = null
+
+                const movedDistance = Math.abs(event.clientX - footerPointer.startClientX)
+                if (isDraggingRef.current || movedDistance > FOOTER_TAP_THRESHOLD_PX) {
+                    return
+                }
+
+                const navRect = event.currentTarget.getBoundingClientRect()
+                const nextX = getXFromClientX(event.clientX, navRect)
+                const nearestIndex = getNearestIndexFromPosition(nextX)
+
+                triggerReleaseFeedback(false)
+                snapToIndex(nearestIndex)
+                navigateToIndex(nearestIndex)
+            }}
+            onPointerCancel={(event) => {
+                const footerPointer = footerPointerRef.current
+                if (!footerPointer || footerPointer.pointerId !== event.pointerId) return
+
+                footerPointerRef.current = null
             }}
         >
             {containerWidth > 0 ? (

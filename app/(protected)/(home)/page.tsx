@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 import { RefreshCw } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useAccountsData } from '@/hooks/use-accounts-data'
+import { useTransactionsData } from '@/hooks/use-transactions-data'
 import { formatCurrency } from '@/lib/utils'
-import { Account, Transaction } from '@/types'
 
 interface CategoryBreakdown {
     name: string
@@ -43,37 +44,9 @@ function formatPercentage(value: number) {
 }
 
 export default function Home() {
-    const [accounts, setAccounts] = useState<Account[]>([])
-    const [transactions, setTransactions] = useState<Transaction[]>([])
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        loadDashboardData()
-    }, [])
-
-    const loadDashboardData = async () => {
-        setLoading(true)
-        try {
-            const [accountsRes, transactionsRes] = await Promise.all([
-                fetch('/api/accounts'),
-                fetch('/api/transactions?limit=300'),
-            ])
-
-            const [accountsData, transactionsData] = await Promise.all([
-                accountsRes.json(),
-                transactionsRes.json(),
-            ])
-
-            setAccounts(accountsData.accounts || [])
-            setTransactions(transactionsData.transactions || [])
-        } catch (error) {
-            console.error('Failed to load dashboard data:', error)
-            setAccounts([])
-            setTransactions([])
-        } finally {
-            setLoading(false)
-        }
-    }
+    const { accounts, loading: accountsLoading } = useAccountsData()
+    const { transactions, loading: transactionsLoading } = useTransactionsData()
+    const loading = accountsLoading || transactionsLoading
 
     const totalBalance = useMemo(
         () => accounts.reduce((sum, account) => sum + account.current_balance, 0),
