@@ -37,7 +37,7 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
                 email,
                 password,
                 options: {
-                    emailRedirectTo: `${window.location.origin}/home`,
+                    emailRedirectTo: `${window.location.origin}/`,
                 },
             })
             if (error) throw error

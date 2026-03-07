@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
 const navItems = [
-    { href: '/home', label: 'Home', icon: House },
+    { href: '/', label: 'Home', icon: House },
     { href: '/transactions', label: 'Transazioni', icon: ReceiptText },
     { href: '/accounts', label: 'Conti', icon: Landmark },
     { href: '/profile', label: 'Profilo', icon: User },
@@ -21,7 +21,7 @@ export default function BottomNav() {
             {navItems.map((item) => {
                 const isActive =
                     pathname === item.href ||
-                    (item.href !== '/home' && pathname.startsWith(`${item.href}/`))
+                    (item.href !== '/' && pathname.startsWith(`${item.href}/`))
                 const Icon = item.icon
 
                 return (
