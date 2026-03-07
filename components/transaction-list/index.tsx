@@ -40,14 +40,12 @@ export default function TransactionList() {
         const today = new Date()
         const yesterday = new Date(today)
         yesterday.setDate(today.getDate() - 1)
-        const startOfToday = new Date(today.setHours(0, 0, 0, 0))
-        const startOfYesterday = new Date(yesterday.setHours(0, 0, 0, 0))
 
-        if (transactionDate.getTime() === startOfToday.getTime()) {
+        if (transactionDate.getDate() === today.getDate()) {
             return 'Oggi'
         }
 
-        if (transactionDate.getTime() === startOfYesterday.getTime()) {
+        if (transactionDate.getDate() === yesterday.getDate()) {
             return 'Ieri'
         }
 
