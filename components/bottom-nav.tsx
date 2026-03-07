@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { House, Landmark, ReceiptText, User } from 'lucide-react'
 import { animate, motion, useMotionValue } from 'motion/react'
-import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 
 import { cn } from '@/lib/utils'
@@ -25,6 +24,8 @@ export default function BottomNav() {
     const pathname = usePathname()
     const router = useRouter()
     const navRef = useRef<HTMLElement | null>(null)
+    const pillRef = useRef<HTMLButtonElement | null>(null)
+    const isPositionInitializedRef = useRef(false)
     const widthRef = useRef(0)
     const resizeFrameRef = useRef<number | null>(null)
     const isDraggingRef = useRef(false)
@@ -73,6 +74,11 @@ export default function BottomNav() {
         if (targetHref && targetHref !== pathname) {
             router.push(targetHref)
         }
+    }
+
+    const snapToIndex = (index: number) => {
+        const snappedX = getSnapXForIndex(index)
+        animateToX(snappedX)
     }
 
     const triggerReleaseFeedback = (enableHaptic = true) => {
@@ -126,7 +132,15 @@ export default function BottomNav() {
 
     useEffect(() => {
         if (!isDraggingRef.current) {
-            x.set(activeX)
+            xAnimationRef.current?.stop()
+
+            if (!isPositionInitializedRef.current) {
+                x.set(activeX)
+                isPositionInitializedRef.current = true
+                return
+            }
+
+            animateToX(activeX)
         }
     }, [activeIndex, activeX, x])
 
@@ -145,9 +159,27 @@ export default function BottomNav() {
         <footer
             ref={navRef}
             className="background-white/10 absolute right-0 bottom-6 left-0 z-50 mx-auto flex w-9/10 items-center justify-between overflow-visible rounded-full border p-1 text-center text-xs shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur"
+            onPointerDown={(event) => {
+                if (isDraggingRef.current || containerWidth <= 0) return
+
+                const target = event.target
+                if (pillRef.current && target instanceof Node && pillRef.current.contains(target)) {
+                    return
+                }
+
+                const navRect = event.currentTarget.getBoundingClientRect()
+                const relativeX = event.clientX - navRect.left - NAV_HORIZONTAL_PADDING
+                const clampedX = clampX(relativeX - segmentWidth / 2)
+                const nearestIndex = getNearestIndexFromPosition(clampedX)
+
+                triggerReleaseFeedback(false)
+                snapToIndex(nearestIndex)
+                navigateToIndex(nearestIndex)
+            }}
         >
             {containerWidth > 0 ? (
                 <motion.button
+                    ref={pillRef}
                     type="button"
                     aria-label={`Vai a ${navItems[activeIndex]?.label ?? 'sezione attiva'}`}
                     className={cn(
@@ -184,8 +216,7 @@ export default function BottomNav() {
                         isDraggingRef.current = false
                         triggerReleaseFeedback()
 
-                        const snappedX = getSnapXForIndex(nearestIndex)
-                        animateToX(snappedX)
+                        snapToIndex(nearestIndex)
                         navigateToIndex(nearestIndex)
                     }}
                 />
@@ -196,20 +227,27 @@ export default function BottomNav() {
                     pathname === item.href ||
                     (item.href !== '/' && pathname.startsWith(`${item.href}/`))
                 const Icon = item.icon
+                const itemIndex = navItems.findIndex((navItem) => navItem.href === item.href)
 
                 return (
-                    <Link
+                    <button
                         key={item.href}
-                        href={item.href}
+                        type="button"
                         aria-current={isActive ? 'page' : undefined}
+                        onClick={() => {
+                            if (itemIndex < 0) return
+
+                            snapToIndex(itemIndex)
+                            navigateToIndex(itemIndex)
+                        }}
                         className={cn(
-                            'focus-visible:ring-primary/40 relative z-10 flex flex-1 flex-col items-center gap-1 rounded-full p-1 outline-none focus-visible:ring-2 focus-visible:ring-offset-0',
+                            'relative z-10 flex flex-1 flex-col items-center gap-1 rounded-full p-1',
                             isActive ? 'text-primary' : 'text-black',
                         )}
                     >
                         <Icon size={20} />
                         <p className="text-xs">{item.label}</p>
-                    </Link>
+                    </button>
                 )
             })}
         </footer>
