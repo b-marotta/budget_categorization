@@ -9,6 +9,8 @@ export const formatCurrency = (amount: number, currency = 'EUR') => {
     return new Intl.NumberFormat('it-IT', {
         style: 'currency',
         currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
     }).format(amount)
 }
 

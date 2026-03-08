@@ -144,7 +144,6 @@ export default function Home() {
 
     const recentTransactions = useMemo(() => transactions.slice(0, 5), [transactions])
 
-    const defaultCurrency = accounts[0]?.currency || transactions[0]?.currency || 'EUR'
     const maxCategoryAmount = categoryBreakdown[0]?.amount || 0
     const totalCategoryAmount = categoryBreakdown.reduce((sum, item) => sum + item.amount, 0)
     const maxTrendAbs = Math.max(...monthlyTrend.map((item) => Math.abs(item.total)), 1)
@@ -176,7 +175,7 @@ export default function Home() {
                     <CardHeader>
                         <CardDescription className="text-center">Saldo totale</CardDescription>
                         <CardTitle className="flex w-full items-center justify-center gap-2 text-4xl">
-                            {formatCurrency(totalBalance, defaultCurrency)}
+                            {formatCurrency(totalBalance)}
                             <Eye className="text-muted-foreground h-5 w-5" />
                         </CardTitle>
                     </CardHeader>
@@ -204,7 +203,7 @@ export default function Home() {
                     <CardHeader>
                         <CardDescription>Entrate mese</CardDescription>
                         <CardTitle className="text-2xl text-green-600">
-                            {formatCurrency(monthlyIncome, defaultCurrency)}
+                            {formatCurrency(monthlyIncome)}
                         </CardTitle>
                         <CardDescription>
                             Tasso risparmio: {formatPercentage(savingsRate)}
@@ -215,7 +214,7 @@ export default function Home() {
                     <CardHeader>
                         <CardDescription>Uscite mese</CardDescription>
                         <CardTitle className="text-2xl text-red-600">
-                            {formatCurrency(monthlyExpenses, defaultCurrency)}
+                            {formatCurrency(monthlyExpenses)}
                         </CardTitle>
                         <CardDescription>
                             Incidenza su entrate: {formatPercentage(expenseRate)}
@@ -247,7 +246,7 @@ export default function Home() {
                                             <span className="truncate">{item.name}</span>
                                             <div className="ml-2 text-right">
                                                 <div className="font-medium">
-                                                    {formatCurrency(item.amount, defaultCurrency)}
+                                                    {formatCurrency(item.amount)}
                                                 </div>
                                                 <div className="text-muted-foreground text-xs">
                                                     {formatPercentage(
@@ -305,7 +304,7 @@ export default function Home() {
                                         <div
                                             className={`w-full rounded-md ${item.total >= 0 ? 'bg-green-600/80' : 'bg-red-600/80'}`}
                                             style={{ height: `${barHeight}%` }}
-                                            title={formatCurrency(item.total, defaultCurrency)}
+                                            title={formatCurrency(item.total)}
                                         />
                                         <span className="text-muted-foreground text-xs">
                                             {item.label}

@@ -1,6 +1,6 @@
 import { Label, Pie, PieChart } from 'recharts'
 
-import { cn } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
 
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart'
 
@@ -84,7 +84,7 @@ export default function InOutChart({
                                         className="fill-foreground"
                                         fontSize={'5vw'}
                                     >
-                                        {String((income + outcome).toFixed(2)).replace('.', ',')} €
+                                        {formatCurrency(income + outcome)}
                                     </text>
                                 )
                             }}

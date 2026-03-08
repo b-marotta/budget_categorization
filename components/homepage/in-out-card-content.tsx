@@ -1,3 +1,5 @@
+import { formatCurrency } from '@/lib/utils'
+
 import { Separator } from '../ui/separator'
 import InOutChart from './in-out-chart'
 
@@ -20,7 +22,7 @@ export default function InOutCardContent({
                     />
                     <div className="flex flex-col">
                         <p>Entrate</p>
-                        <p>{String(monthlyIncome.toFixed(2)).replace('.', ',')} €</p>
+                        <p>{formatCurrency(monthlyIncome)}</p>
                     </div>
                 </div>
                 <Separator className="my-4" />
@@ -31,7 +33,7 @@ export default function InOutCardContent({
                     />
                     <div className="flex flex-col">
                         <p>Uscite</p>
-                        <p>{String(monthlyExpenses.toFixed(2)).replace('.', ',')} €</p>
+                        <p>{formatCurrency(monthlyExpenses)}</p>
                     </div>
                 </div>
             </div>
