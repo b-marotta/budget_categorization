@@ -9,8 +9,12 @@ export default function InOutCardContent({
     monthlyExpenses: number
 }) {
     return (
-        <div className="flex items-center gap-4">
-            <InOutChart income={monthlyIncome} outcome={monthlyExpenses} className="w-50" />
+        <div className="flex items-center gap-4 py-4">
+            <InOutChart
+                income={monthlyIncome}
+                outcome={monthlyExpenses}
+                className="-mb-18 flex h-30 w-1/2"
+            />
             <Separator orientation="vertical" />
             <div className="flex-1">
                 <div className="flex items-center gap-2">
@@ -20,7 +24,7 @@ export default function InOutCardContent({
                     />
                     <div className="flex flex-col">
                         <p>Entrate</p>
-                        <p>{monthlyIncome}</p>
+                        <p>{String(monthlyIncome.toFixed(2)).replace('.', ',')} €</p>
                     </div>
                 </div>
                 <Separator className="my-4" />
@@ -31,7 +35,7 @@ export default function InOutCardContent({
                     />
                     <div className="flex flex-col">
                         <p>Uscite</p>
-                        <p>{monthlyExpenses}</p>
+                        <p>{String(monthlyExpenses.toFixed(2)).replace('.', ',')} €</p>
                     </div>
                 </div>
             </div>
