@@ -1,4 +1,4 @@
-import { Pie, PieChart } from 'recharts'
+import { Label, Pie, PieChart } from 'recharts'
 
 import { cn } from '@/lib/utils'
 
@@ -35,22 +35,15 @@ export default function InOutChart({
     const startAngle = 190
     const endAngle = -10
 
-    const innerRadius = '85%'
+    const innerRadius = '86%'
     const outerRadius = '100%'
     const paddingAngle = 1
     const cornerRadius = '20%'
     const animationActive = true
 
     return (
-        <div className={cn('relative', className)}>
-            <div className="absolute inset-0 bottom-12 flex items-end justify-center">
-                <div className="text-center">
-                    <div className="-mr-1 text-xl">
-                        {String((income + outcome).toFixed(2)).replace('.', ',')} €
-                    </div>
-                </div>
-            </div>
-            <ChartContainer config={chartConfig} className="mx-auto h-80 w-full max-w-80">
+        <div className={cn('relative -mb-[20%]', className)}>
+            <ChartContainer config={chartConfig} className="mx-auto aspect-square w-full">
                 <PieChart>
                     <defs>
                         <pattern
@@ -75,7 +68,28 @@ export default function InOutChart({
                         paddingAngle={paddingAngle}
                         cornerRadius={cornerRadius}
                         isAnimationActive={animationActive}
-                    />
+                    >
+                        <Label
+                            content={({ viewBox }) => {
+                                if (!viewBox || !('cx' in viewBox) || !('cy' in viewBox)) {
+                                    return null
+                                }
+
+                                return (
+                                    <text
+                                        x={viewBox.cx}
+                                        y={viewBox.cy}
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        className="fill-foreground"
+                                        fontSize={'5vw'}
+                                    >
+                                        {String((income + outcome).toFixed(2)).replace('.', ',')} €
+                                    </text>
+                                )
+                            }}
+                        />
+                    </Pie>
                     <Pie
                         startAngle={startAngle}
                         endAngle={endAngle}
@@ -90,9 +104,6 @@ export default function InOutChart({
                         cornerRadius={cornerRadius}
                         isAnimationActive={animationActive}
                     />
-                    {/* <Label position="center" fill="black" className="text-sm">
-                        {String((income + outcome).toFixed(2)).replace('.', ',')} €
-                    </Label> */}
                 </PieChart>
             </ChartContainer>
         </div>
