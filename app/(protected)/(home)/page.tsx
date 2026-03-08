@@ -2,8 +2,9 @@
 
 import { useMemo } from 'react'
 
-import { RefreshCw } from 'lucide-react'
+import { Eye, RefreshCw } from 'lucide-react'
 
+import AccountsList from '@/components/homepage/accounts-list'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAccountsData } from '@/hooks/use-accounts-data'
@@ -169,15 +170,21 @@ export default function Home() {
                 <Badge variant="secondary">{`${accounts.length} Cont${accounts.length === 1 ? 'o' : 'i'}`}</Badge>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3">
-                <Card>
+            <div className="grid gap-3">
+                <Card className="border-0 bg-transparent">
                     <CardHeader>
-                        <CardDescription>Saldo totale</CardDescription>
-                        <CardTitle className="text-2xl">
+                        <CardDescription className="text-center">Saldo totale</CardDescription>
+                        <CardTitle className="flex w-full items-center justify-center gap-2 text-4xl">
                             {formatCurrency(totalBalance, defaultCurrency)}
+                            <Eye className="text-muted-foreground h-5 w-5" />
                         </CardTitle>
                     </CardHeader>
                 </Card>
+            </div>
+
+            <AccountsList accounts={accounts} totalBalance={totalBalance} />
+
+            <div className="grid gap-3 sm:grid-cols-2">
                 <Card>
                     <CardHeader>
                         <CardDescription>Entrate mese</CardDescription>
