@@ -13,7 +13,7 @@ export default function InOutCardContent({
             <InOutChart
                 income={monthlyIncome}
                 outcome={monthlyExpenses}
-                className="-mb-18 flex h-30 w-1/2"
+                className="-mb-18 flex h-30 w-3/5"
             />
             <Separator orientation="vertical" />
             <div className="flex-1">
