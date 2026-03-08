@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import { Eye, RefreshCw } from 'lucide-react'
 
 import AccountsList from '@/components/homepage/accounts-list'
+import InOutCardContent from '@/components/homepage/in-out-card-content'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAccountsData } from '@/hooks/use-accounts-data'
@@ -183,6 +184,20 @@ export default function Home() {
             </div>
 
             <AccountsList accounts={accounts} totalBalance={totalBalance} />
+
+            <div>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-center">Questo mese</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <InOutCardContent
+                            monthlyIncome={monthlyIncome}
+                            monthlyExpenses={monthlyExpenses}
+                        />
+                    </CardContent>
+                </Card>
+            </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
                 <Card>
