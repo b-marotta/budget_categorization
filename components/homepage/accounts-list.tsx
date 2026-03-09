@@ -59,7 +59,7 @@ export default function AccountsList({
                                     width: `${percentage * 100}%`,
                                     backgroundColor: accountColor,
                                     backgroundImage:
-                                        'repeating-linear-gradient(-45deg, rgba(255,255,255,0.22), rgba(255,255,255,0.22) 4px, rgba(255,255,255,0) 4px, rgba(255,255,255,0) 8px)',
+                                        'repeating-linear-gradient(-45deg, rgba(255,255,255,0.22), rgba(255,255,255,0.22) 3px, rgba(255,255,255,0) 3px, rgba(255,255,255,0) 6px)',
                                 }}
                             />
                             {percentage < 0.95 && (

@@ -12,7 +12,7 @@ export default function InOutCardContent({
 }) {
     return (
         <div className="flex items-center gap-4 py-4">
-            <InOutChart income={monthlyIncome} outcome={monthlyExpenses} className="w-3/5" />
+            <InOutChart income={monthlyIncome} outcome={monthlyExpenses} className="w-[60%]" />
             <Separator orientation="vertical" />
             <div className="flex-1">
                 <div className="flex items-center gap-2">

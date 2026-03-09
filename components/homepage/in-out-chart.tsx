@@ -32,29 +32,28 @@ export default function InOutChart({
         },
     } satisfies ChartConfig
 
-    const startAngle = 190
-    const endAngle = -10
+    const startAngle = 200
+    const endAngle = -20
 
-    const innerRadius = '86%'
+    const innerRadius = '80%'
     const outerRadius = '100%'
     const paddingAngle = 1
     const cornerRadius = '20%'
     const animationActive = true
 
     return (
-        <div className={cn('relative -mb-[20%]', className)}>
+        <div className={cn('relative -mb-[18%]', className)}>
             <ChartContainer config={chartConfig} className="mx-auto aspect-square w-full">
                 <PieChart>
                     <defs>
                         <pattern
                             id="in-out-stripes"
                             patternUnits="userSpaceOnUse"
-                            width="8"
-                            height="8"
+                            width="6"
+                            height="6"
                             patternTransform="rotate(-45)"
                         >
-                            <rect width="12" height="4" fill="rgba(255,255,255,0.15)" />
-                            <rect y="4" width="12" height="4" fill="rgba(255,255,255,0)" />
+                            <rect width="20" height="3" fill="rgba(255,255,255,0.15)" />
                         </pattern>
                     </defs>
                     <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
@@ -81,10 +80,11 @@ export default function InOutChart({
                                         y={viewBox.cy}
                                         textAnchor="middle"
                                         dominantBaseline="middle"
-                                        className="fill-foreground"
+                                        className="fill-foreground font-medium"
                                         fontSize={'5vw'}
                                     >
-                                        {formatCurrency(income + outcome)}
+                                        {income - outcome > 0 ? '+ ' : '- '}
+                                        {formatCurrency(Math.abs(income - outcome))}
                                     </text>
                                 )
                             }}
